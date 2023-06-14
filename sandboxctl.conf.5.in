@@ -215,6 +215,18 @@ in this variable.
 Default: not set.
 .El
 @endif
+@if SunOS
+.Ss Configuration variables for the sunos-native sandbox type
+The
+.Sq sunos-native
+sandbox type sets up a (XXX not Nx)
+.Nx
+sandbox on a
+.Nx
+host and replicates the host system under the sandbox using null mounts.
+Sandboxes created using this type mimic the host system and are fast to create
+and destroy.
+@endif
 .Ss Hooks
 Hooks are user-provided routines invoked at particular points of the sandbox
 manipulation.

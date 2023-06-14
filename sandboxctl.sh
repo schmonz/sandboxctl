@@ -251,7 +251,7 @@ _sandboxctl_chroot() {
         SHELL=/bin/sh \
         TERM="${TERM}" \
         USER="${USER}" \
-        chroot "$(shtk_config_get SANDBOX_ROOT)" "${@}" || ret="${?}"
+        chroot "$(shtk_config_get SANDBOX_ROOT)" "${SHELL}" "${@}" || ret="${?}"
     sandboxctl_unmount
     _SANDBOXCTL_DID_UNMOUNT=true
     return "${ret}"

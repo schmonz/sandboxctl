@@ -17,3 +17,6 @@ end
 if fs.exists("netbsd_release_test") then
    atf_test_program{name="netbsd_release_test"}
 end
+if fs.exists("sunos_native_test") then
+   atf_test_program{name="sunos_native_test"}
+end

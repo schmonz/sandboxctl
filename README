@@ -10,7 +10,7 @@ extracting fresh distribution sets to bind-mounting the outer file
 systems inside the sandbox.  The specific mechanism depends on the
 features supported by the underlying operating system and the chosen
 sandbox type.  Currently, sandboxctl includes support for FreeBSD,
-Linux, macOS (Darwin), and NetBSD.
+Linux, macOS (Darwin), NetBSD, and Solarish systems.
 
 Each sandbox is defined via a configuration file provided by the user
 and a system-specific template provided by this package.  The user

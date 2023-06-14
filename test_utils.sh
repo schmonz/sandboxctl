@@ -63,7 +63,7 @@ mount_tmpfs() {
             sandbox_bindfs -o rw "${tmpdir}" "${mount_point}"
             ;;
 
-        FreeBSD|Linux|NetBSD)
+        FreeBSD|Linux|NetBSD|SunOS)
             mount -t tmpfs tmpfs "${mount_point}" \
                 || atf_fail "Failed to mount a tmpfs file system"
             ;;

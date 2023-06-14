@@ -223,7 +223,7 @@ sandbox_has_mounts() {
     [ -d "${root}" ] || return 1
 
     local real_root="$(cd "${root}" && pwd -P)"
-    LANG=C LC_ALL=C mount | grep -E " on ${real_root}(/[^ ]+| )" >/dev/null 2>&1
+    LANG=C LC_ALL=C mount | ggrep -E " on ${real_root}(/[^ ]+| )" >/dev/null 2>&1
 }
 
 
@@ -259,7 +259,7 @@ sandbox_unmount_dirs() {
     local real_root="$(cd "${root}" && pwd -P)"
     LANG=C LC_ALL=C mount \
         | sed -e 's,^.* on ,,;s, ([^)]*)$,,;s, type .*$,,' \
-        | grep -E "^${real_root}/.+" \
+        | ggrep -E "^${real_root}/.+" \
         | while read dir
     do
         shtk_cli_debug "Unmounting ${dir}"
@@ -478,6 +478,11 @@ sandbox_bindfs() {
 
         NetBSD)
             mount -t null -o "${mode}" "${source}" "${mount_point}" \
+                || shtk_cli_error "Failed to bind ${mount_point}"
+            ;;
+
+        SunOS)
+            mount -F lofs -o "${mode}" "${source}" "${mount_point}" \
                 || shtk_cli_error "Failed to bind ${mount_point}"
             ;;
 

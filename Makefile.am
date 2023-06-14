@@ -79,6 +79,11 @@ else
 EXTRA_DIST += modules/netbsd_native.subr
 EXTRA_DIST += modules/netbsd_release.subr
 endif
+if SANDBOXCTL_OS_SUNOS
+dist_pkgdata_DATA += modules/sunos_native.subr
+else
+EXTRA_DIST += modules/sunos_native.subr
+endif
 
 nodist_sandboxctl_conf_DATA = default.conf
 CLEANFILES = default.conf
@@ -86,6 +91,7 @@ EXTRA_DIST += examples/Darwin.conf
 EXTRA_DIST += examples/FreeBSD.conf
 EXTRA_DIST += examples/Linux.conf
 EXTRA_DIST += examples/NetBSD.conf
+EXTRA_DIST += examples/SunOS.conf
 default.conf: $(srcdir)/examples/$(SANDBOXCTL_OS).conf
 	$(AM_V_GEN)cp $(srcdir)/examples/$(SANDBOXCTL_OS).conf default.conf
 
@@ -192,6 +198,17 @@ modules/netbsd_release_test: $(srcdir)/modules/netbsd_release_test.sh \
 	test -d modules || mkdir -p modules
 	sources="$(srcdir)/modules/netbsd_release_test.sh $(srcdir)/test_utils.sh" \
 	target=modules/netbsd_release_test; $(BUILD_TEST)
+endif
+
+EXTRA_DIST += modules/sunos_native_test.sh
+if SANDBOXCTL_OS_SUNOS
+modulestests_SCRIPTS += modules/sunos_native_test
+CLEANFILES += modules/sunos_native_test
+modules/sunos_native_test: $(srcdir)/modules/sunos_native_test.sh \
+                           $(srcdir)/test_utils.sh
+	test -d modules || mkdir -p modules
+	sources="$(srcdir)/modules/sunos_native_test.sh $(srcdir)/test_utils.sh" \
+	target=modules/sunos_native_test; $(BUILD_TEST)
 endif
 
 if HAVE_KYUA

@@ -1,0 +1,94 @@
+# Copyright 2017 Google Inc.
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are
+# met:
+#
+# * Redistributions of source code must retain the above copyright
+#   notice, this list of conditions and the following disclaimer.
+# * Redistributions in binary form must reproduce the above copyright
+#   notice, this list of conditions and the following disclaimer in the
+#   documentation and/or other materials provided with the distribution.
+# * Neither the name of Google Inc. nor the names of its contributors
+#   may be used to endorse or promote products derived from this software
+#   without specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+# "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+# LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+# A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+# OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+# SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+# LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+# DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+# THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+# \file sunos_native.subr
+# Sandbox type to null-mount a live Solaris system.
+#
+# This sandbox type is pretty permissive in the file system layout to try
+# to support a wide variety of Solarish distributions.
+
+shtk_import cli
+shtk_import sandbox
+
+# List of directories to null-mount in read-only mode.
+#
+# Only the directories that exist will be remounted, so this list tries
+# to cover multiple potential file system layouts.
+_SUNOS_NATIVE_BINDFS_MOUNTS="
+    bin sbin kernel lib proc dev devices
+    usr/bin usr/sbin
+    usr/X11R6 usr/5bin usr/ccs usr/dt usr/games
+    usr/include usr/lib usr/openwin usr/share usr/sadm usr/sfw usr/ucb usr/ucblib usr/xpg4
+    var/mail var/sadm
+    opt/SUNWspro"
+# sandboxEmptyDirs (all platforms) = /var/run /var/log /var/spool/lock /var/spool/mqueue
+# sandboxEmptyDirs (SunOS) += /usr/tmp /var/tmp
+
+# Sets up a Solaris sandbox that uses null mounts.
+#
+# \param root Path to the sandbox directory.
+sunos_native_create() {
+    local root="${1}"; shift
+
+    for dir in ${_SUNOS_NATIVE_BINDFS_MOUNTS}; do
+        if [ -e "/${dir}" ]; then
+            mkdir -p "${root}/${dir}" || return
+        fi
+    done
+
+    mkdir "${root}/tmp"
+    chmod 1777 "${root}/tmp"
+
+    for dir in etc root; do
+        shtk_cli_debug "Copying ${dir} into the sandbox"
+        mkdir "${root}/${dir}"
+        nbtar -c -C "/${dir}" -f - . | nbtar -xp -C "${root}/${dir}" -f - || return
+    done
+
+#    shtk_cli_debug "Replicating /var layout within the sandbox"
+#    mkdir "${root}/var"
+#    find /var -path "${root}" -prune -o -type d -exec mkdir -p "${root}{}" \; \
+#        || return
+}
+
+
+# Enters a Solaris sandbox that uses null mounts.
+#
+# \param root Path to the sandbox directory.
+sunos_native_mount() {
+    local root="${1}"; shift
+
+    for dir in ${_SUNOS_NATIVE_BINDFS_MOUNTS}; do
+        if [ -e "/${dir}" ]; then
+            sandbox_bindfs "/${dir}" "${root}/${dir}" || return
+        fi
+    done
+    mount -F fd fd "${root}"/dev/fd
+}
+# XXX $mountprog -F lofs -r /dev $sandbox/dev
+# XXX $cpprog /etc/TIMEZONE $sandbox/etc/TIMEZONE
